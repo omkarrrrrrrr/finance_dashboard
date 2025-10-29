@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dharte • Personal Finance Dashboard</title>
+  <meta name="description" content="Track income, expenses, and visualize your financial health with interactive charts." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="container">
+    <header class="dashboard-header" role="banner">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm1 15h-2v-2h2Zm0-4h-2V7h2Z"/></svg>
+        <h1>Finance Dashboard</h1>
+      </div>
+      <div class="secure-indicator" aria-label="Secure and private">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Local & Private</span>
+      </div>
+    </header>
+
+    <main id="main" class="dashboard-grid" role="main">
+      <!-- Summary cards -->
+      <section class="summary-cards" aria-labelledby="summary-title">
+        <h2 id="summary-title" class="sr-only">Financial Summary</h2>
+
+        <article class="card secure" aria-live="polite">
+          <h3>Total Balance</h3>
+          <p class="amount" id="total-balance" data-currency="₹">₹0</p>
+          <p class="sub">All accounts • real-time updates</p>
+        </article>
+
+        <article class="card positive">
+          <h3>Monthly Income</h3>
+          <p class="amount" id="monthly-income">₹0</p>
+          <p class="sub">This month</p>
+        </article>
+
+        <article class="card negative">
+          <h3>Monthly Expenses</h3>
+          <p class="amount" id="monthly-expense">₹0</p>
+          <p class="sub">This month</p>
+        </article>
+
+        <article class="card neutral">
+          <h3>Investments</h3>
+          <p class="amount" id="investment-sum">₹0</p>
+          <p class="sub">Portfolio summary</p>
+        </article>
+      </section>
+
+      <!-- Transaction form -->
+      <section class="panel" aria-labelledby="new-tx-title">
+        <h2 id="new-tx-title">Add Transaction</h2>
+        <form id="tx-form" autocomplete="on" novalidate>
+          <div class="grid-2">
+            <label>
+              <span>Type</span>
+              <select id="type" required>
+                <option value="income">Income</option>
+                <option value="expense">Expense</option>
+                <option value="investment">Investment</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Category</span>
+              <select id="category" required>
+                <option value="salary">Salary</option>
+                <option value="freelance">Freelance</option>
+                <option value="food">Food</option>
+                <option value="rent">Rent</option>
+                <option value="travel">Travel</option>
+                <option value="health">Health</option>
+                <option value="shopping">Shopping</option>
+                <option value="utilities">Utilities</option>
+                <option value="investment">Investment</option>
+                <option value="other">Other</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Amount (₹)</span>
+              <input id="amount" type="number" min="0" step="0.01" required inputmode="decimal" placeholder="0.00"/>
+            </label>
+
+            <label>
+              <span>Date</span>
+              <input id="date" type="date" required/>
+            </label>
+          </div>
+
+          <label class="full">
+            <span>Note (optional)</span>
+            <input id="note" type="text" maxlength="80" placeholder="e.g., November rent / client payment" />
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="btn primary">Add</button>
+            <button type="reset" class="btn ghost">Clear</button>
+          </div>
+          <p id="form-error" class="error" role="alert" aria-live="assertive"></p>
+        </form>
+      </section>
+
+      <!-- Filters -->
+      <section class="panel" aria-labelledby="filters-title">
+        <h2 id="filters-title">Filters</h2>
+        <div class="filters">
+          <label>
+            <span>By Category</span>
+            <select id="filter-category">
+              <option value="all">All</option>
+              <option value="salary">Salary</option>
+              <option value="freelance">Freelance</option>
+              <option value="food">Food</option>
+              <option value="rent">Rent</option>
+              <option value="travel">Travel</option>
+              <option value="health">Health</option>
+              <option value="shopping">Shopping</option>
+              <option value="utilities">Utilities</option>
+              <option value="investment">Investment</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>
+            <span>Search</span>
+            <input id="filter-search" type="text" placeholder="Search note or category" />
+          </label>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="panel table-wrap" aria-labelledby="history-title">
+        <h2 id="history-title">Transaction History</h2>
+        <div class="table-scroller" tabindex="0">
+          <table class="tx-table" aria-describedby="history-title">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th class="right">Amount</th>
+                <th>Note</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tx-body">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <section class="charts">
+        <article class="panel">
+          <h2>Expense Breakdown</h2>
+          <canvas id="pieChart" height="220" aria-label="Expense breakdown pie chart" role="img"></canvas>
+        </article>
+        <article class="panel">
+          <h2>Monthly Spending Trend</h2>
+          <canvas id="lineChart" height="220" aria-label="Spending trend line chart" role="img"></canvas>
+        </article>
+        <article class="panel">
+          <h2>Income vs Expenses</h2>
+          <canvas id="barChart" height="220" aria-label="Income versus expenses bar chart" role="img"></canvas>
+        </article>
+      </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+      <p>🔒 Stored privately in your browser (LocalStorage). No data leaves your device.</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
